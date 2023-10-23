@@ -1,47 +1,31 @@
-import os,sys
 
-#SAMPLE=os.listdir("/home/halim/HR_test/RNASeq/Fastq/SNU-E01T1-RNA")
-SAMPLE=os.listdir("/home/halim/HR_test/RNASeq/Fastq/")
-SAMPLE=[ '_'.join(i.split('_')[:1]) for i in SAMPLE ]
-SAMPLE=list(set(SAMPLE))
-# PATH
-PATH="/home/halim/HR_test/RNASeq"
-SAMPLE_DIR_ORIGIN=PATH+"/Fastq"
-SAMPLE_DIR=PATH+"/Trim_Fastq"
-RESULT_DIR=PATH+"/RESULT"
-REF="/home/halim/HR_test/DB/ref_fasta/ucsc.hg19.fasta"
-PE_REF="/home/halim/HR_test/DB/TruSeq2-PE.fa"
-STAR_DIR="/home/halim/HR_test/DB/StarIndex/"
-GTF="/home/halim/HR_test/DB/gencode.v19.annotation.gtf"
-#GTF="/home/halim/HR_test/DB/Homo_sapiens.GRCh37.87.gtf"
-HG19_REF_FLAT="/home/halim/HR_test/DB/refFlat.txt"
+PATH="Path directory"
 
-rule all:
-        input:
-                #expand("{result_path}/{sample}/{sample}_htseq.counts.out",result_path=RESULT_DIR,sample=SAMPLE),
-                expand("{result_path}/{sample}/{sample}_stringtie.abund.gtf",result_path=RESULT_DIR,sample=SAMPLE)
+REF="ucsc.hg19.fasta"
+PE_REF="TruSeq2-PE.fa"
+STAR_DIR="StarIndex/"
+GTF="gencode.v19.annotation.gtf"
+HG19_REF_FLAT="refFlat.txt"
 
 rule FASTQC:
 	input:
-		r1=SAMPLE_DIR_ORIGIN+"/{sample}"+"/{sample}_1.fastq.gz",
-		r2=SAMPLE_DIR_ORIGIN+"/{sample}"+"/{sample}_2.fastq.gz"
+		r1="{sample}_1.fastq.gz",
+		r2="{sample}_2.fastq.gz"
 	output:
-		zipf="{result_path}/FastQC/{sample}_fastqc.zip",
-		html="{result_path}/FastQC/{sample}_fastqc.html"
-	params:
-		"{result_path}/FastQC/}"
+		zipf="{sample}_fastqc.zip",
+		html="{sample}_fastqc.html"
 	shell:
-		"fastqc -t 8 {input.r1} {input.r2} -o {params}"
+		"fastqc -t 8 {input.r1} {input.r2} -o {output_directory}"
 
 rule TRIMMOMATIC:
 	input:
-		r1=SAMPLE_DIR_ORIGIN+"/{sample}"+"/{sample}_1.fastq.gz",
-		r2=SAMPLE_DIR_ORIGIN+"/{sample}"+"/{sample}_2.fastq.gz"
+		r1="{sample}_1.fastq.gz",
+		r2="{sample}_2.fastq.gz"
 	output:
-		out1=SAMPLE_DIR+"/{sample}/{sample}_1.trimmed.fastq.gz",
-		out2=SAMPLE_DIR+"/{sample}/{sample}_1.untrimmed.fastq.gz",
-		out3=SAMPLE_DIR+"/{sample}/{sample}_2.trimmed.fastq.gz",
-		out4=SAMPLE_DIR+"/{sample}/{sample}_2.untrimmed.fastq.gz",
+		out1="{sample}_1.trimmed.fastq.gz",
+		out2="{sample}_1.untrimmed.fastq.gz",
+		out3="{sample}_2.trimmed.fastq.gz",
+		out4="{sample}_2.untrimmed.fastq.gz",
 	params:
 		pe_ref=PE_REF
 	shell:
@@ -49,15 +33,15 @@ rule TRIMMOMATIC:
 
 rule STAR:
 	input:
-		r1=SAMPLE_DIR+"/{sample}/{sample}_1.trimmed.fastq.gz",
-		r2=SAMPLE_DIR+"/{sample}/{sample}_2.trimmed.fastq.gz"
+		r1="{sample}_1.trimmed.fastq.gz",
+		r2="{sample}_2.trimmed.fastq.gz"
 	output:
-		bam="{result_path}/{sample}/{sample}_Aligned.sortedByCoord.out.bam",
-		counts="{result_path}/{sample}/{sample}_ReadsPerGene.out.tab"
+		bam="{sample}_Aligned.sortedByCoord.out.bam",
+		counts="{sample}_ReadsPerGene.out.tab"
 	params:
 		th="4",
 		read_length="100",
-		prefix="{result_path}/{sample}/{sample}_",
+		prefix="{sample}_",
 		index_dir=STAR_DIR,
 		ref=REF,
 		gtf=GTF
@@ -70,7 +54,7 @@ rule samtools_index:
 	input:
 		bam=rules.STAR.output.bam
 	output:
-		bai="{result_path}/{sample}/{sample}_Aligned.sortedByCoord.out.bam.bai"
+		bai="{sample}_Aligned.sortedByCoord.out.bam.bai"
 	shell:
 	#	"samtools index -b -@ 14 {input.bam} -o {output.bai}"
 		"samtools index -b {input.bam}"
@@ -80,7 +64,7 @@ rule htseq:
 		bam=rules.STAR.output.bam,
 		bai=rules.samtools_index.output.bai
 	output:
-		readcounts="{result_path}/{sample}/{sample}_htseq.counts.out"
+		readcounts="{sample}_htseq.counts.out"
 	params:
 		gtf=GTF
 	shell:
@@ -92,10 +76,20 @@ rule stringtie:
 		bam=rules.STAR.output.bam,
 		bai=rules.samtools_index.output.bai
 	output:
-		standard="{result_path}/{sample}/{sample}_stringtie.gtf",
-		abundance="{result_path}/{sample}/{sample}_stringtie.abund.gtf",
+		standard="{sample}_stringtie.gtf",
+		abundance="{sample}_stringtie.abund.gtf",
 	params:
 		th="8",
 		gtf=GTF
 	shell:
 		"stringtie {input.bam} -p 8 -o {output.standard} -A {output.abundance} -G {params.gtf}"
+rule STARFusion:
+	input:
+		r1="{sample}_1.trimmed.fastq.gz",
+		r2="{sample}_2.trimmed.fastq.gz"
+	params:
+		genome="GRCh37_gencode_v19_CTAT_lib_Mar012021.plug-n-play/ctat_genome_lib_build_dir",
+		result_path="Result_path"
+	shell:
+		"STAR-Fusion --left_fq {input.r1} --right_fq {input.r2} "
+		"--CPU 24 --output_dir {params.result_path} --genome_lib_dir {params.genome}"
