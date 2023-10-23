@@ -5,6 +5,7 @@ Multi-omics analysis.
 
 #Genomics_Analysis.py  
 
+#Proteomics_Analysis.py
+
 #Transcriptome_Analysis.py  
 
-#Proteomics_Analysis.py
