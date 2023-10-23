@@ -167,7 +167,6 @@ rule VCF2MAF:
 		tumor="{t_sample}",
 		normal=lambda wildcards: f"{config[wildcards.t_sample]['normal']}"
 	shell:
-		#"perl {params.vcf2maf_tool} --input-vcf {input} --output-maf {output} "
 		"{params.vcf2maf_tool} --input-vcf {input} --output-maf {output} "
 		"--ref-fasta {params.ref} --vep-path {params.vep_tool} --vep-data {params.vep_cache} "
 		"--tumor-id {params.tumor} --vcf-tumor-id {params.tumor} "
