@@ -10,25 +10,23 @@ PE_REF="TruSeq2-PE.fa"
 
 rule FASTQC:
         input:
-                r1=SAMPLE_DIR_ORIGIN+"/{sample}_1.fastq.gz",
-                r2=SAMPLE_DIR_ORIGIN+"/{sample}_2.fastq.gz"
+                r1="{sample}_1.fastq.gz",
+                r2="{sample}_2.fastq.gz"
         output:
-                zipf="{result_path}/FastQC/{sample}_fastqc.zip",
-                html="{result_path}/FastQC/{sample}_fastqc.html"
-        params:
-                "{result_path}/FastQC/}"
+                zipf="{sample}_fastqc.zip",
+                html="{sample}_fastqc.html"
         shell:
-                "fastqc -t 14 {input.r1} {input.r2} -o {params}"
+                "fastqc -t 14 {input.r1} {input.r2} -o {output_Directory}"
 
 rule TRIMMOMATIC:
         input:
-                r1=SAMPLE_DIR_ORIGIN+"/{sample}_1.fastq.gz",
-                r2=SAMPLE_DIR_ORIGIN+"/{sample}_2.fastq.gz"
+                r1="{sample}_1.fastq.gz",
+                r2="{sample}_2.fastq.gz"
         output:
-                out1=SAMPLE_DIR+"/{sample}/{sample}_1.trimmed.fastq.gz",
-                out2=SAMPLE_DIR+"/{sample}/{sample}_1.untrimmed.fastq.gz",
-                out3=SAMPLE_DIR+"/{sample}/{sample}_2.trimmed.fastq.gz",
-                out4=SAMPLE_DIR+"/{sample}/{sample}_2.untrimmed.fastq.gz"
+                out1="{sample}_1.trimmed.fastq.gz",
+                out2="{sample}_1.untrimmed.fastq.gz",
+                out3="{sample}_2.trimmed.fastq.gz",
+                out4="{sample}_2.untrimmed.fastq.gz"
         params:
                 pe_ref=PE_REF
         shell:
