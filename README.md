@@ -1,5 +1,5 @@
 # Longitudinal_GBM
-Cancer Cell - Longitudinal GBM
+Cancer Cell -  Integrated Proteogenomic Characterization of Longitudinal Glioblastoma
 
 Multi-omics analysis.
 
