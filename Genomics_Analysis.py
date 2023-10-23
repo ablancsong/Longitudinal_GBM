@@ -29,7 +29,6 @@ rule TRIMMOMATIC:
                 out2=SAMPLE_DIR+"/{sample}/{sample}_1.untrimmed.fastq.gz",
                 out3=SAMPLE_DIR+"/{sample}/{sample}_2.trimmed.fastq.gz",
                 out4=SAMPLE_DIR+"/{sample}/{sample}_2.untrimmed.fastq.gz"
-                #out5=SAMPLE_DIR+"/{sample}/{sample}_single.trimmed.fastq.gz"
         params:
                 pe_ref=PE_REF
         shell:
@@ -98,7 +97,7 @@ rule ApplyBqsr:
 
 rule Mutect2:
 	input:
-		normal=lambda wildcards: expand(f"/{config[wildcards.t_sample]['normal']}_dupl.recalib.bam",result_path=RESULT_DIR),
+		normal=lambda wildcards: expand(f"{config[wildcards.t_sample]['normal']}_dupl.recalib.bam",result_path=RESULT_DIR),
 		tumor="{sample}_dupl.recalib.bam"
 	output:
 		vcf="{sample}_somatic.vcf",
@@ -179,7 +178,7 @@ rule VCF2MAF:
 rule CNVkit:
 	input:
 		normal=lambda wildcards: expand(f"{config[wildcards.t_sample]['normal']}_dupl.recalib.bam",result_path=RESULT_DIR),
-		tumor="/{t_sample}_dupl.recalib.bam"
+		tumor="{t_sample}_dupl.recalib.bam"
 	output:
 		cnn_file="{t_sample}_my_reference.cnn",
 		cnn_dir="cnn_directory"
