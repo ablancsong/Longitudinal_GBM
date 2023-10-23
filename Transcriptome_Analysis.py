@@ -1,6 +1,5 @@
 
 PATH="Path directory"
-
 REF="ucsc.hg19.fasta"
 PE_REF="TruSeq2-PE.fa"
 STAR_DIR="StarIndex/"
