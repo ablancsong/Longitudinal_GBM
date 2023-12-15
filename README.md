@@ -9,3 +9,4 @@
 
 #Transcriptome_Analysis.py  
 
+Further information and requests for resources and reagents should be directed to and will be fulfilled by the Contact, Harim Koo.(harimkoo@ncc.re.kr)
